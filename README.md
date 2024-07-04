@@ -3,11 +3,14 @@
 ## Building the Go application 
 - Using Dockerfile
 - Using Ko
-  ```
+```
 KO_DOCKER_REPO=ttl.sh ko publish .
-  ```
-- Using Buildsafe
+```
+
+
+Using Buildsafe
 ## Installing nginx ingress controller
+
 ```
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.9.4/deploy/static/provider/cloud/deploy.yaml
 ```
