@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Go Server Example</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .logo {
+            display: block;
+            margin: 20px auto;
+            width: 100px;
+        }
+        form {
+            text-align: center;
+            margin: 20px 0;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+            text-align: center;
+        }
+        li {
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" alt="Logo" class="logo">
+    <form id="addForm">
+        <input type="text" id="nameInput" name="name" placeholder="Enter name" required>
+        <button type="submit">Add Name</button>
+    </form>
+    <ul id="nameList"></ul>
+    <script>
+        async function fetchNames() {
+            const response = await fetch('/names');
+            if (response.ok) {
+                const names = await response.json();
+                console.log('Fetched names:', names);
+                if (!names) {
+                    console.error('Fetched names is null');
+                    return;
+                }
+                updateNameList(names);
+            } else {
+                console.error('Failed to fetch names:', response.statusText);
+            }
+        }
+
+        function updateNameList(names) {
+            if (!Array.isArray(names)) {
+                console.error('Names is not an array:', names);
+                return;
+            }
+            const nameList = document.getElementById('nameList');
+            nameList.innerHTML = '';
+            names.forEach(name => {
+                const li = document.createElement('li');
+                li.textContent = name;
+                const deleteForm = document.createElement('form');
+                deleteForm.action = '/delete';
+                deleteForm.method = 'post';
+                deleteForm.style.display = 'inline';
+                deleteForm.innerHTML = `
+                    <input type="hidden" name="name" value="${name}">
+                    <button type="submit">Delete</button>
+                `;
+                deleteForm.addEventListener('submit', async (event) => {
+                    event.preventDefault();
+                    const formData = new FormData(deleteForm);
+                    const response = await fetch('/delete', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    if (response.ok) {
+                        const updatedNames = await response.json();
+                        console.log('Updated names after delete:', updatedNames);
+                        updateNameList(updatedNames);
+                    } else {
+                        console.error('Failed to delete name:', response.statusText);
+                    }
+                });
+                li.appendChild(deleteForm);
+                nameList.appendChild(li);
+            });
+        }
+
+        document.getElementById('addForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const nameInput = document.getElementById('nameInput');
+            const name = nameInput.value.trim();
+            if (name === '') {
+                console.error('Name input is empty');
+                return;
+            }
+            const formData = new FormData();
+            formData.append('name', name);
+            console.log('FormData being sent:', formData);
+            for (let [key, value] of formData.entries()) { 
+                console.log(key, value);
+            }
+            const response = await fetch('/add', {
+                method: 'POST',
+                body: formData
+            });
+            if (response.ok) {
+                const names = await response.json();
+                console.log('Updated names after add:', names);
+                if (!names) {
+                    console.error('Updated names after add is null');
+                    return;
+                }
+                updateNameList(names);
+                event.target.reset();
+            } else {
+                console.error('Failed to add name:', response.statusText);
+            }
+        });
+
+        // Fetch initial names on page load
+        fetchNames();
+    </script>
+</body>
+</html>

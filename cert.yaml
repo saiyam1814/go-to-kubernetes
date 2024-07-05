@@ -1,0 +1,27 @@
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-prod
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: saiym911@gmail.com
+    privateKeySecretRef:
+      name: letsencrypt-prod
+    solvers:
+    - http01:
+        ingress:
+          class: nginx
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: demo
+spec:
+  secretName: demo
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  commonName: golang.kubesimplify.com
+  dnsNames:
+  - golang.kubesimplify.com
